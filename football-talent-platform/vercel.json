@@ -1,0 +1,28 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://crown-star.onrender.com/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {},
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://crown-star.onrender.com/api/:path*"
+    }
+  ]
+}
