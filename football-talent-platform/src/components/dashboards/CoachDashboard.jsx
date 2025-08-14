@@ -1,5 +1,3 @@
-"use client"
-
 import DashboardLayout from "../layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"

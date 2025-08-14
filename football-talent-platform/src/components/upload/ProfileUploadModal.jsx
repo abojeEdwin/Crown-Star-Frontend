@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -45,41 +43,29 @@ export default function ProfileUploadModal({ isOpen, onClose, onUploadSuccess })
     if (!selectedFile) return
 
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append("profilePicture", selectedFile)
 
     try {
-      const token = localStorage.getItem("token")
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      // For now, create a local blob URL for the uploaded image
+      const imageUrl = URL.createObjectURL(selectedFile)
+      
+      // Store the image URL in localStorage to persist across sessions
       const user = JSON.parse(localStorage.getItem("user") || "{}")
+      user.profilePicture = imageUrl
+      localStorage.setItem("user", JSON.stringify(user))
 
-      const response = await fetch(`${API_BASE_URL}/${user.role}/upload-profile-picture`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      toast({
+        title: "Success",
+        description: "Profile picture uploaded successfully! (Demo mode)",
       })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Profile picture uploaded successfully!",
-        })
-        onUploadSuccess(data.imageUrl)
-        handleClose()
-      } else {
-        toast({
-          title: "Error",
-          description: data.message || "Failed to upload image",
-          variant: "destructive",
-        })
-      }
+      onUploadSuccess(imageUrl)
+      handleClose()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Network error. Please try again.",
+        description: "Failed to upload image. Please try again.",
         variant: "destructive",
       })
     } finally {

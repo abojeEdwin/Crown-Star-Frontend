@@ -1,5 +1,3 @@
-"use client"
-
 import DashboardLayout from "../layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
@@ -16,7 +14,7 @@ export default function ScoutDashboard() {
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, Scout {user.firstName || 'User'}!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
           <p className="text-purple-100 text-lg">Discover the next generation of football stars and build winning teams.</p>
         </div>
 
