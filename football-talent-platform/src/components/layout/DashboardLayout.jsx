@@ -212,11 +212,11 @@ export default function DashboardLayout({ children, role }) {
             {/* Hamburger Button */}
             <Button 
               variant="ghost" 
-              className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-gray-100"
+              className="h-12 w-12 rounded-full flex items-center justify-center hover:bg-gray-100"
               onClick={toggleMenu}
             >
               <span className="sr-only">Open menu</span>
-              <Menu className="h-6 w-6" />
+              <Menu className="h-8 w-8" />
             </Button>
           </div>
         </div>

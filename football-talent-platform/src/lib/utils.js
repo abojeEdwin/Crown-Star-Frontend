@@ -67,20 +67,20 @@ export const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
   }
 }
 
-export const fetchWithRetry = async (url, options = {}, maxRetries = 2) => {
+export const fetchWithRetry = async (url, options = {}, maxRetries = 1) => {
   let lastError = null
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      // Increase timeout for each retry attempt
-      const timeout = 10000 + attempt * 5000 // 10s, 15s, 20s
+      // Much faster timeouts for quicker feedback
+      const timeout = 3000 + attempt * 1000 // 3s, 4s (total max: 8s)
       return await fetchWithTimeout(url, options, timeout)
     } catch (error) {
       lastError = error
 
       if (attempt < maxRetries) {
-        // Wait before retrying (exponential backoff)
-        const delay = Math.pow(2, attempt) * 1000 // 1s, 2s, 4s
+        // Shorter wait before retrying
+        const delay = 500 // Just 500ms between retries
         await new Promise((resolve) => setTimeout(resolve, delay))
         console.log(`Retry attempt ${attempt + 1} for ${url}`)
       }

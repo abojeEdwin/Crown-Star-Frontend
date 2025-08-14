@@ -82,11 +82,40 @@ export default function LoginPage() {
         })
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Network error. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Login error:", error)
+      
+      // Demo mode fallback when backend is not available
+      if (error.message.includes("timeout") || error.message.includes("Failed to fetch")) {
+        console.log("Backend not available, checking for demo user")
+        
+        // Check if demo user exists
+        const demoUser = JSON.parse(localStorage.getItem('demoUser') || 'null')
+        
+        if (demoUser && demoUser.email === formData.email && demoUser.role === formData.role) {
+          // Log in the demo user
+          login(demoUser, 'demo-token')
+          
+          toast({
+            title: "Demo Mode",
+            description: "Logged in with demo account!",
+            variant: "success",
+          })
+          
+          navigate(`/dashboard/${formData.role}`)
+        } else {
+          toast({
+            title: "Demo Mode",
+            description: "No demo account found. Please sign up first.",
+            variant: "destructive",
+          })
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Network error. Please try again or check if the server is running.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -159,7 +188,7 @@ export default function LoginPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing In...</span>
+                  <span>Signing In... (up to 8s)</span>
                 </div>
               ) : (
                 "Sign In"

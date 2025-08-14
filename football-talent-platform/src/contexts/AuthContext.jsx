@@ -43,7 +43,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updateUser = (updatedData) => {
+    console.log('Updating user with:', updatedData) // Debug log
     const updatedUser = { ...user, ...updatedData }
+    console.log('Updated user:', updatedUser) // Debug log
     localStorage.setItem("user", JSON.stringify(updatedUser))
     setUser(updatedUser)
   }

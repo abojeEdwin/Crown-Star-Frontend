@@ -88,7 +88,7 @@ export default function SignupPage() {
       // Show user feedback about potential delay
       toast({
         title: "Creating Account",
-        description: "Please wait, the server might be starting up...",
+        description: "Please wait...",
         variant: "info",
       })
       
@@ -124,11 +124,37 @@ export default function SignupPage() {
       }
     } catch (error) {
       console.error("Network error:", error)
-      toast({
-        title: "Error",
-        description: "Network error. Please try again.",
-        variant: "destructive",
-      })
+      
+      // Demo mode fallback when backend is not available
+      if (error.message.includes("timeout") || error.message.includes("Failed to fetch")) {
+        console.log("Backend not available, using demo mode")
+        
+        // Create a demo user account
+        const demoUser = {
+          id: Date.now().toString(),
+          email: formData.email,
+          role: formData.role,
+          name: formData.email.split('@')[0], // Use email prefix as name
+          profilePicture: null,
+          createdAt: new Date().toISOString()
+        }
+        
+        // Store in localStorage for demo purposes
+        localStorage.setItem('demoUser', JSON.stringify(demoUser))
+        
+        toast({
+          title: "Demo Mode",
+          description: "Backend not available. Created demo account successfully!",
+          variant: "success",
+        })
+        navigate("/login")
+      } else {
+        toast({
+          title: "Error",
+          description: "Network error. Please try again or check if the server is running.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -227,7 +253,7 @@ export default function SignupPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating Account...</span>
+                  <span>Creating Account... (up to 8s)</span>
                 </div>
               ) : (
                 "Create Account"

@@ -4,12 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Upload, X, Check } from "lucide-react"
 import { API_BASE_URL } from "../../lib/utils"
 import { useToast } from "../../hooks/use-toast"
+import { useAuth } from "../../contexts/AuthContext"
 
 export default function ProfileUploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [preview, setPreview] = useState(null)
   const { toast } = useToast()
+  const { updateUser } = useAuth()
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0]
@@ -48,19 +50,19 @@ export default function ProfileUploadModal({ isOpen, onClose, onUploadSuccess })
       // Simulate upload delay
       await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // For now, create a local blob URL for the uploaded image
-      const imageUrl = URL.createObjectURL(selectedFile)
+      // Convert image to base64 for better persistence
+      const base64Image = await convertToBase64(selectedFile)
       
-      // Store the image URL in localStorage to persist across sessions
-      const user = JSON.parse(localStorage.getItem("user") || "{}")
-      user.profilePicture = imageUrl
-      localStorage.setItem("user", JSON.stringify(user))
+      // Update user context immediately (this will trigger re-renders)
+      updateUser({ profilePicture: base64Image })
 
       toast({
         title: "Success",
         description: "Profile picture uploaded successfully! (Demo mode)",
       })
-      onUploadSuccess(imageUrl)
+      
+      // Call the success callback
+      onUploadSuccess(base64Image)
       handleClose()
     } catch (error) {
       toast({
@@ -71,6 +73,16 @@ export default function ProfileUploadModal({ isOpen, onClose, onUploadSuccess })
     } finally {
       setIsUploading(false)
     }
+  }
+
+  // Helper function to convert file to base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleClose = () => {
