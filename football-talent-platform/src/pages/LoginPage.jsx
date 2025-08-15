@@ -63,7 +63,7 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Use AuthContext login method
+      
         login({ ...data.user, role: formData.role }, data.token)
 
         toast({
@@ -72,7 +72,7 @@ export default function LoginPage() {
           variant: "success",
         })
 
-        // Route to appropriate dashboard
+      
         navigate(`/dashboard/${formData.role}`)
       } else {
         toast({
@@ -85,7 +85,7 @@ export default function LoginPage() {
       console.error("Login error:", error)
       toast({
         title: "Error",
-        description: "Network error. Please check if the server is running and try again.",
+        description: "Oppss. Server is asleep please try again.",
         variant: "destructive",
       })
     } finally {
@@ -103,10 +103,10 @@ export default function LoginPage() {
         backgroundRepeat: "no-repeat"
       }}
     >
-      {/* Dark overlay for better readability */}
+      {}
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       
-      {/* Content */}
+      {}
       <Card className="w-full max-w-md shadow-2xl border-0 relative z-10 bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center bg-white/90 backdrop-blur-sm rounded-t-lg">
           <Link to="/" className="flex items-center justify-center space-x-2 mb-4">
