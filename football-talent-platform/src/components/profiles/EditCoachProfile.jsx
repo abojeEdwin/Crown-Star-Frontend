@@ -16,21 +16,17 @@ export default function EditCoachProfile() {
   const { toast } = useToastContext()
   
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
+    userName: user?.userName || '',
     location: user?.location || '',
     bio: user?.bio || '',
     // Coach-specific fields
-    currentTeam: user?.currentTeam || '',
-    coachingLevel: user?.coachingLevel || '',
-    experience: user?.experience || '',
-    licenseLevel: user?.licenseLevel || '',
-    specializations: user?.specializations || '',
-    achievements: user?.achievements || '',
-    philosophy: user?.philosophy || '',
-    formationsUsed: user?.formationsUsed || '',
-    languagesSpoken: user?.languagesSpoken || ''
+    teamName: user?.teamName || '',
+    age: user?.age || '',
+    experienceYears: user?.experienceYears || '',
+    fullName: user?.fullName || '',
+    bio: user?.bio || '',
+    phone: user?.phone || '',
+    dateOfBirth: user?.dateOfBirth || '',
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +44,7 @@ export default function EditCoachProfile() {
     setIsLoading(true)
     
     try {
-      const response = await fetchWithRetry(`${API_BASE_URL}/coach/profile`, {
+      const response = await fetchWithRetry(`${API_BASE_URL}/coach/updateCoach/:id`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -157,62 +153,49 @@ export default function EditCoachProfile() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="currentTeam">Current Team/Club</Label>
+                  <Label htmlFor="teamName">Current Team</Label>
                   <Input
-                    id="currentTeam"
-                    name="currentTeam"
-                    value={formData.currentTeam}
+                    id="teamName"
+                    name="teamName"
+                    value={formData.teamName}
                     onChange={handleChange}
                     placeholder="Club or team you currently coach"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Label htmlFor="experienceYears">Years of Experience</Label>
                   <Input
                     type="number"
-                    id="experience"
-                    name="experience"
-                    value={formData.experience}
+                    id="experienceYears"
+                    name="experienceYears"
+                    value={formData.experienceYears}
                     onChange={handleChange}
                     placeholder="10"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="coachingLevel">Coaching Level</Label>
-                  <select
-                    id="coachingLevel"
-                    name="coachingLevel"
-                    value={formData.coachingLevel}
+                  <Label htmlFor="age">Age</Label>
+                  <Input
+                    type="number"
+                    id="age"
+                    name="age"
+                    value={formData.age}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="">Select Level</option>
-                    <option value="youth">Youth Coach</option>
-                    <option value="amateur">Amateur Coach</option>
-                    <option value="semi-professional">Semi-Professional</option>
-                    <option value="professional">Professional</option>
-                    <option value="international">International</option>
-                  </select>
+                  />
                 </div>
                 
                 <div>
-                  <Label htmlFor="licenseLevel">License Level</Label>
-                  <select
-                    id="licenseLevel"
-                    name="licenseLevel"
-                    value={formData.licenseLevel}
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Input
+                    id="dob"
+                    name="dob"
+                    value={formData.dateOfBirth}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="">Select License</option>
-                    <option value="uefa-c">UEFA C License</option>
-                    <option value="uefa-b">UEFA B License</option>
-                    <option value="uefa-a">UEFA A License</option>
-                    <option value="uefa-pro">UEFA Pro License</option>
-                    <option value="other">Other Certification</option>
-                  </select>
+                  />
                 </div>
               </div>
               
@@ -226,53 +209,6 @@ export default function EditCoachProfile() {
                   value={formData.bio}
                   onChange={handleChange}
                   placeholder="Describe your coaching background and experience..."
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="philosophy">Coaching Philosophy</Label>
-                <Textarea
-                  id="philosophy"
-                  name="philosophy"
-                  rows={4}
-                  value={formData.philosophy}
-                  onChange={handleChange}
-                  placeholder="Describe your approach to coaching and player development..."
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="specializations">Specializations</Label>
-                <Textarea
-                  id="specializations"
-                  name="specializations"
-                  rows={3}
-                  value={formData.specializations}
-                  onChange={handleChange}
-                  placeholder="What aspects of the game do you specialize in? (Tactics, Youth Development, etc.)"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="achievements">Achievements</Label>
-                <Textarea
-                  id="achievements"
-                  name="achievements"
-                  rows={3}
-                  value={formData.achievements}
-                  onChange={handleChange}
-                  placeholder="Major achievements, titles, awards, and recognition..."
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="formationsUsed">Preferred Formations</Label>
-                <Input
-                  id="formationsUsed"
-                  name="formationsUsed"
-                  value={formData.formationsUsed}
-                  onChange={handleChange}
-                  placeholder="4-3-3, 4-2-3-1, 3-5-2, etc."
                 />
               </div>
               
