@@ -84,8 +84,7 @@ export default function SignupPage() {
     try {
       const apiUrl = `${API_BASE_URL}/${formData.role}/register`
       console.log("Making API request to:", apiUrl)
-      
-      // Show user feedback about potential delay
+  
       toast({
         title: "Creating Account",
         description: "Please wait...",
@@ -105,8 +104,15 @@ export default function SignupPage() {
       })
 
       console.log("API Response status:", response.status)
-      const data = await response.json()
-      console.log("API Response data:", data)
+      
+      let data
+      try {
+        data = await response.json()
+        console.log("API Response data:", data)
+      } catch (jsonError) {
+        console.log("Failed to parse JSON response, might be network issue")
+        throw new Error("Failed to parse server response")
+      }
 
       if (response.ok) {
         toast({
@@ -116,6 +122,19 @@ export default function SignupPage() {
         })
         navigate("/login")
       } else {
+        // Log the exact error for debugging
+        console.log("Signup failed with status:", response.status, "message:", data.message)
+        
+        // Check for "already exists" error specifically
+        if (data.message && 
+            (data.message.toLowerCase().includes('already exist') || 
+             data.message.toLowerCase().includes('user exists'))) {
+          
+          console.log("User already exists")
+          
+          throw new Error("User already exists")
+        }
+        
         toast({
           title: "Error",
           description: data.message || "Failed to create account",
@@ -125,35 +144,56 @@ export default function SignupPage() {
     } catch (error) {
       console.error("Network error:", error)
       
-      // Demo mode fallback when backend is not available
-      if (error.message.includes("timeout") || error.message.includes("Failed to fetch")) {
-        console.log("Backend not available, using demo mode")
+      if (error.message.includes("timeout") || 
+          error.message.includes("Failed to fetch") || 
+          error.message.includes("NetworkError") ||
+          error.message.includes("ECONNREFUSED")) {
+        console.log("Service timeout, please wait...")
         
-        // Create a demo user account
-        const demoUser = {
-          id: Date.now().toString(),
-          email: formData.email,
-          role: formData.role,
-          name: formData.email.split('@')[0], // Use email prefix as name
-          profilePicture: null,
-          createdAt: new Date().toISOString()
+        // Check if user already exists in demo storage
+        const existingDemoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]')
+        const existingUser = existingDemoUsers.find(user => 
+          user.email === formData.email && user.role === formData.role
+        )
+        
+        if (existingUser) {
+          toast({
+            title: "Error",
+            description: "Account already exists! Please try logging in instead.",
+            variant: "destructive",
+          })
+          return
         }
         
-        // Store in localStorage for demo purposes
-        localStorage.setItem('demoUser', JSON.stringify(demoUser))
+        // // Create a demo user account
+        // const demoUser = {
+        //   id: Date.now().toString(),
+        //   email: formData.email,
+        //   role: formData.role,
+        //   name: formData.email.split('@')[0], // Use email prefix as name
+        //   profilePicture: null,
+        //   createdAt: new Date().toISOString()
+        // }
         
-        toast({
-          title: "Demo Mode",
-          description: "Backend not available. Created demo account successfully!",
-          variant: "success",
-        })
-        navigate("/login")
+        // // Add to demo users array
+        // existingDemoUsers.push(demoUser)
+        // localStorage.setItem('demoUsers', JSON.stringify(existingDemoUsers))
+        
+        // // Also keep single user for backward compatibility
+        // localStorage.setItem('demoUser', JSON.stringify(demoUser))
+        
+        // toast({
+        //   title: "Demo Mode",
+        //   description: "Backend not available. Created demo account successfully!",
+        //   variant: "success",
+        // })
+        // navigate("/login")
       } else {
-        toast({
-          title: "Error",
-          description: "Network error. Please try again or check if the server is running.",
-          variant: "destructive",
-        })
+        // toast({
+        //   title: "Error",
+        //   description: "Network error. Please try again or check if the server is running.",
+        //   variant: "destructive",
+        // })
       }
     } finally {
       setIsLoading(false)

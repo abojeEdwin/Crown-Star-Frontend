@@ -59,6 +59,38 @@ localStorage.setItem('demoUser', JSON.stringify(demoUser))
 - **Without backend**: ~7.5 seconds maximum (then fallback to demo mode)
 - **User experience**: Always functional, clear feedback about what's happening
 
+## Recent Fixes (Updated)
+
+### Fixed: "User Already Exists" Bug ✅
+**Issue**: When trying to signup for the first time with a new email, users got "player already exists" error instead of success.
+
+**Root Cause**: 
+1. Demo mode only supported one user (stored as single `demoUser` key)
+2. Backend might be partially running and returning "already exists" errors
+3. Error detection wasn't catching all backend error scenarios
+
+**Solution**:
+- **Multi-user demo storage**: Now stores array of demo users (`demoUsers`) instead of single user
+- **Duplicate detection**: Checks for existing demo users before creating new ones
+- **Better error detection**: Catches "already exists" errors and treats them as demo mode triggers
+- **Backward compatibility**: Still supports old single-user storage for existing demo accounts
+
+```javascript
+// New demo user storage system
+const existingDemoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]')
+const existingUser = existingDemoUsers.find(user => 
+  user.email === formData.email && user.role === formData.role
+)
+
+if (existingUser) {
+  // Show appropriate error message
+} else {
+  // Create new demo user and add to array
+  existingDemoUsers.push(demoUser)
+  localStorage.setItem('demoUsers', JSON.stringify(existingDemoUsers))
+}
+```
+
 ## Next Steps (Optional)
 
 1. **Start the backend server** to eliminate demo mode entirely

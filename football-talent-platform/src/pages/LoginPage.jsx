@@ -88,10 +88,23 @@ export default function LoginPage() {
       if (error.message.includes("timeout") || error.message.includes("Failed to fetch")) {
         console.log("Backend not available, checking for demo user")
         
-        // Check if demo user exists
-        const demoUser = JSON.parse(localStorage.getItem('demoUser') || 'null')
+        // Check both new array storage and old single user storage
+        const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]')
+        const singleDemoUser = JSON.parse(localStorage.getItem('demoUser') || 'null')
         
-        if (demoUser && demoUser.email === formData.email && demoUser.role === formData.role) {
+        // Find matching user in array first
+        let demoUser = demoUsers.find(user => 
+          user.email === formData.email && user.role === formData.role
+        )
+        
+        // Fallback to single user if not found in array
+        if (!demoUser && singleDemoUser && 
+            singleDemoUser.email === formData.email && 
+            singleDemoUser.role === formData.role) {
+          demoUser = singleDemoUser
+        }
+        
+        if (demoUser) {
           // Log in the demo user
           login(demoUser, 'demo-token')
           
