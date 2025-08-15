@@ -47,21 +47,28 @@ export default function ProfileUploadModal({ isOpen, onClose, onUploadSuccess })
     setIsUploading(true)
 
     try {
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-
-      // Convert image to base64 for better persistence
-      const base64Image = await convertToBase64(selectedFile)
+      // TODO: Replace with actual API call when backend is ready
+      // const formData = new FormData()
+      // formData.append('profilePicture', selectedFile)
+      // const response = await fetch('/api/upload/profile-picture', {
+      //   method: 'POST',
+      //   body: formData,
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`
+      //   }
+      // })
+      // const data = await response.json()
+      // updateUser({ profilePicture: data.profilePictureUrl })
       
-      // Update user context immediately (this will trigger re-renders)
+      // For now, use base64 encoding until backend is implemented
+      const base64Image = await convertToBase64(selectedFile)
       updateUser({ profilePicture: base64Image })
 
       toast({
         title: "Success",
-        description: "Profile picture uploaded successfully! (Demo mode)",
+        description: "Profile picture uploaded successfully!",
       })
       
-      // Call the success callback
       onUploadSuccess(base64Image)
       handleClose()
     } catch (error) {

@@ -45,7 +45,7 @@ export default function LoginPage() {
       }
       toast({
         title: "Signing In",
-        description: "Connecting, please wait...",
+        description: "Please wait...",
         variant: "info",
       })
 
@@ -83,52 +83,11 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login error:", error)
-      
-      // Demo mode fallback when backend is not available
-      if (error.message.includes("timeout") || error.message.includes("Failed to fetch")) {
-        console.log("Backend not available, checking for demo user")
-        
-        // Check both new array storage and old single user storage
-        const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]')
-        const singleDemoUser = JSON.parse(localStorage.getItem('demoUser') || 'null')
-        
-        // Find matching user in array first
-        let demoUser = demoUsers.find(user => 
-          user.email === formData.email && user.role === formData.role
-        )
-        
-        // Fallback to single user if not found in array
-        if (!demoUser && singleDemoUser && 
-            singleDemoUser.email === formData.email && 
-            singleDemoUser.role === formData.role) {
-          demoUser = singleDemoUser
-        }
-        
-        if (demoUser) {
-          // Log in the demo user
-          login(demoUser, 'demo-token')
-          
-          toast({
-            title: "Demo Mode",
-            description: "Logged in with demo account!",
-            variant: "success",
-          })
-          
-          navigate(`/dashboard/${formData.role}`)
-        } else {
-          toast({
-            title: "Demo Mode",
-            description: "No demo account found. Please sign up first.",
-            variant: "destructive",
-          })
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: "Network error. Please try again or check if the server is running.",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Error",
+        description: "Network error. Please check if the server is running and try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -201,7 +160,7 @@ export default function LoginPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing In... (up to 8s)</span>
+                  <span>Signing In...</span>
                 </div>
               ) : (
                 "Sign In"

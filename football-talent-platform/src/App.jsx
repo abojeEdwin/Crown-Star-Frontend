@@ -7,7 +7,7 @@ import SignupPage from "./pages/SignupPage"
 import LoginPage from "./pages/LoginPage"
 import Dashboard from "./pages/Dashboard"
 import Profile from "./pages/Profile"
-import EditProfile from "./pages/EditProfile"
+import EditProfileRouter from "./pages/EditProfileRouter"
 import AuthGuard from "./components/AuthGuard"
 
 function App() {
@@ -40,10 +40,10 @@ function App() {
                 path="/profile/:role/edit"
                 element={
                   <AuthGuard>
-                    <EditProfile />
+                    <EditProfileRouter />
                   </AuthGuard>
-                  }
-                />
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <Toaster />

@@ -122,18 +122,7 @@ export default function SignupPage() {
         })
         navigate("/login")
       } else {
-        // Log the exact error for debugging
         console.log("Signup failed with status:", response.status, "message:", data.message)
-        
-        // Check for "already exists" error specifically
-        if (data.message && 
-            (data.message.toLowerCase().includes('already exist') || 
-             data.message.toLowerCase().includes('user exists'))) {
-          
-          console.log("User already exists")
-          
-          throw new Error("User already exists")
-        }
         
         toast({
           title: "Error",
@@ -143,58 +132,11 @@ export default function SignupPage() {
       }
     } catch (error) {
       console.error("Network error:", error)
-      
-      if (error.message.includes("timeout") || 
-          error.message.includes("Failed to fetch") || 
-          error.message.includes("NetworkError") ||
-          error.message.includes("ECONNREFUSED")) {
-        console.log("Service timeout, please wait...")
-        
-        // Check if user already exists in demo storage
-        const existingDemoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]')
-        const existingUser = existingDemoUsers.find(user => 
-          user.email === formData.email && user.role === formData.role
-        )
-        
-        if (existingUser) {
-          toast({
-            title: "Error",
-            description: "Account already exists! Please try logging in instead.",
-            variant: "destructive",
-          })
-          return
-        }
-        
-        // // Create a demo user account
-        // const demoUser = {
-        //   id: Date.now().toString(),
-        //   email: formData.email,
-        //   role: formData.role,
-        //   name: formData.email.split('@')[0], // Use email prefix as name
-        //   profilePicture: null,
-        //   createdAt: new Date().toISOString()
-        // }
-        
-        // // Add to demo users array
-        // existingDemoUsers.push(demoUser)
-        // localStorage.setItem('demoUsers', JSON.stringify(existingDemoUsers))
-        
-        // // Also keep single user for backward compatibility
-        // localStorage.setItem('demoUser', JSON.stringify(demoUser))
-        
-        // toast({
-        //   title: "Demo Mode",
-        //   description: "Backend not available. Created demo account successfully!",
-        //   variant: "success",
-        // })
-        // navigate("/login")
-      } else {
-        // toast({
-        //   title: "Error",
-        //   description: "Network error. Please try again or check if the server is running.",
-        //   variant: "destructive",
-        // })
-      }
+      toast({
+        title: "Error",
+        description: "Network error. Please check if the server is running and try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -293,7 +235,7 @@ export default function SignupPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating Account... (up to 8s)</span>
+                  <span>Creating Account...</span>
                 </div>
               ) : (
                 "Create Account"
