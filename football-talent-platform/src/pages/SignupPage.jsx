@@ -134,7 +134,7 @@ export default function SignupPage() {
       console.error("Network error:", error)
       toast({
         title: "Error",
-        description: "Network error. Please check if the server is running and try again.",
+        description: "Network error. Please check your network connection and try again.",
         variant: "destructive",
       })
     } finally {
@@ -165,7 +165,7 @@ export default function SignupPage() {
         backgroundRepeat: "no-repeat"
       }}
     >
-      {/* Dark overlay for better readability */}
+      {}
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       
       {/* Content */}

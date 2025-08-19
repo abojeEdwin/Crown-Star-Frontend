@@ -44,8 +44,19 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (updatedData) => {
     console.log('Updating user with:', updatedData) // Debug log
-    const updatedUser = { ...user, ...updatedData }
-    console.log('Updated user:', updatedUser) // Debug log
+    
+    // Ensure we preserve all existing user data and merge new data correctly
+    const currentUser = JSON.parse(localStorage.getItem("user") || '{}')
+    const updatedUser = {
+      ...currentUser,
+      ...user, // Current state
+      ...updatedData, // New updates
+      // Explicitly preserve important fields
+      profilePicture: updatedData.profilePicture || user?.profilePicture || currentUser?.profilePicture,
+      avatar: updatedData.avatar || user?.avatar || currentUser?.avatar
+    }
+    
+    console.log('Updated user data:', updatedUser) // Debug log
     localStorage.setItem("user", JSON.stringify(updatedUser))
     setUser(updatedUser)
   }

@@ -7,7 +7,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { useToastContext } from "../../contexts/ToastContext"
-import { API_BASE_URL, fetchWithRetry } from "../../lib/utils"
+import { API_BASE_URL, fetchWithRetry, updateProfileData } from "../../lib/utils"
 import { ArrowLeft, Save } from "lucide-react"
 
 export default function EditCoachProfile() {
@@ -17,16 +17,18 @@ export default function EditCoachProfile() {
   
   const [formData, setFormData] = useState({
     userName: user?.userName || '',
-    location: user?.location || '',
-    bio: user?.bio || '',
-    // Coach-specific fields
-    teamName: user?.teamName || '',
-    age: user?.age || '',
-    experienceYears: user?.experienceYears || '',
     fullName: user?.fullName || '',
+    teamName: user?.teamName || '',
+    // Coach-specific fields
+    experienceYears: user?.experienceYears || '',
     bio: user?.bio || '',
     phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
+    email: user?.email || '',
+    location: user?.location || '',
+    specialization: user?.specialization || '',
+    certifications: user?.certifications || '',
+    currentTeam: user?.currentTeam || '',
+    achievements: user?.achievements || ''
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -44,39 +46,56 @@ export default function EditCoachProfile() {
     setIsLoading(true)
     
     try {
-      const response = await fetchWithRetry(`${API_BASE_URL}/coach/updateCoach/:id`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        const updatedUser = await response.json()
-        updateUser(updatedUser)
-        
-        toast({
-          title: "Success",
-          description: "Coach profile updated successfully!",
-          variant: "success",
-        })
-        
-        navigate('/dashboard/coach')
-      } else {
-        const errorData = await response.json()
-        toast({
-          title: "Error",
-          description: errorData.message || "Failed to update profile",
-          variant: "destructive",
-        })
+      const coachId = user?.id
+      if (!coachId) {
+        throw new Error('Coach ID not found. Please log in again.')
       }
+
+      // Format and validate the data
+      const formattedData = {
+        ...formData,
+        // Ensure numerical fields are numbers
+        experienceYears: formData.experienceYears ? parseInt(formData.experienceYears, 10) : null,
+        // Remove any undefined or empty string values
+        ...Object.fromEntries(
+          Object.entries(formData).filter(([_, value]) => 
+            value !== undefined && value !== ''
+          )
+        )
+      }
+
+      // Log the formatted data
+      console.log('Formatted data being sent:', formattedData)
+
+      const result = await updateProfileData('coach', localStorage.getItem('token'), coachId, formattedData)
+
+      let updatedUser = null
+      
+      // If result contains user data, use it
+      if (result && typeof result === 'object' && result.success !== false) {
+        updatedUser = { ...user, ...formData, ...result }
+      } else {
+        // Otherwise, just merge form data with existing user
+        updatedUser = { ...user, ...formData }
+      }
+        
+      // Update user context
+      if (updatedUser) {
+        updateUser(updatedUser)
+      }
+      
+      toast({
+        title: "Success",
+        description: "Coach profile updated successfully!",
+        variant: "success",
+      })
+      
+      navigate('/dashboard/coach')
     } catch (error) {
       console.error('Profile update error:', error)
       toast({
         title: "Error",
-        description: "Network error. Please check if the server is running and try again.",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -106,21 +125,38 @@ export default function EditCoachProfile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="fullName">Full Name *</Label>
                   <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    value={formData.fullName}
                     onChange={handleChange}
                     required
+                    minLength={2}
+                    maxLength={100}
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="userName">Username *</Label>
+                  <Input
+                    type="text"
+                    id="userName"
+                    name="userName"
+                    value={formData.userName}
+                    onChange={handleChange}
+                    required
+                    minLength={3}
+                    maxLength={50}
+                    pattern="[a-zA-Z0-9_-]+"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     type="email"
                     id="email"
@@ -130,7 +166,7 @@ export default function EditCoachProfile() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
@@ -139,87 +175,93 @@ export default function EditCoachProfile() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    pattern="[0-9+\-\s()]+"
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">Location *</Label>
                   <Input
+                    type="text"
                     id="location"
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
+                    required
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="teamName">Current Team</Label>
+                  <Label htmlFor="currentTeam">Current Team</Label>
                   <Input
-                    id="teamName"
-                    name="teamName"
-                    value={formData.teamName}
+                    type="text"
+                    id="currentTeam"
+                    name="currentTeam"
+                    value={formData.currentTeam}
                     onChange={handleChange}
-                    placeholder="Club or team you currently coach"
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="experienceYears">Years of Experience</Label>
+                  <Label htmlFor="experienceYears">Years of Experience *</Label>
                   <Input
                     type="number"
                     id="experienceYears"
                     name="experienceYears"
                     value={formData.experienceYears}
                     onChange={handleChange}
-                    placeholder="10"
+                    required
+                    min="0"
+                    max="50"
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="age">Age</Label>
+                  <Label htmlFor="specialization">Specialization</Label>
                   <Input
-                    type="number"
-                    id="age"
-                    name="age"
-                    value={formData.age}
+                    type="text"
+                    id="specialization"
+                    name="specialization"
+                    value={formData.specialization}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="dob">Date of Birth</Label>
-                  <Input
-                    id="dob"
-                    name="dob"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="e.g., Youth Development, Professional Training"
                   />
                 </div>
               </div>
-              
-              {/* Text Areas */}
+
               <div>
-                <Label htmlFor="bio">Professional Bio</Label>
+                <Label htmlFor="certifications">Certifications</Label>
                 <Textarea
-                  id="bio"
-                  name="bio"
-                  rows={4}
-                  value={formData.bio}
+                  id="certifications"
+                  name="certifications"
+                  value={formData.certifications}
                   onChange={handleChange}
-                  placeholder="Describe your coaching background and experience..."
+                  placeholder="List your coaching certifications..."
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="achievements">Achievements</Label>
+                <Textarea
+                  id="achievements"
+                  name="achievements"
+                  value={formData.achievements}
+                  onChange={handleChange}
+                  placeholder="List your major achievements and accomplishments..."
+                  rows={2}
                 />
               </div>
               
               <div>
-                <Label htmlFor="languagesSpoken">Languages Spoken</Label>
-                <Input
-                  id="languagesSpoken"
-                  name="languagesSpoken"
-                  value={formData.languagesSpoken}
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
                   onChange={handleChange}
-                  placeholder="English, Spanish, Portuguese, etc."
+                  placeholder="Tell us about your coaching philosophy and experience..."
+                  rows={4}
                 />
               </div>
               

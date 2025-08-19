@@ -7,7 +7,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { useToastContext } from "../../contexts/ToastContext"
-import { API_BASE_URL, fetchWithRetry } from "../../lib/utils"
+import { API_BASE_URL, fetchWithRetry, updateProfileData } from "../../lib/utils"
 import { ArrowLeft, Save } from "lucide-react"
 
 export default function EditPlayerProfile() {
@@ -16,19 +16,18 @@ export default function EditPlayerProfile() {
   const { toast } = useToastContext()
   
   const [formData, setFormData] = useState({
-    email: user?.email || '',
-    location: user?.location || '',
-    bio: user?.bio || '',
-    // Player-specific fields
     fullName: user?.fullName || '',
-    position: user?.position || '',
     userName: user?.userName || '',
+    phone: user?.phone || '',
+    // Player-specific fields
+    location: user?.location || '',
+    position: user?.position || '',
     height: user?.height || '',
     weight: user?.weight || '',
     dateOfBirth: user?.dateOfBirth || '',
     clubTeam: user?.clubTeam || '',
     age: user?.age || '',
-    phone: user?.phone || '',
+    bio: user?.bio || ''
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -46,39 +45,59 @@ export default function EditPlayerProfile() {
     setIsLoading(true)
     
     try {
-      const response = await fetchWithRetry(`${API_BASE_URL}/player/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        const updatedUser = await response.json()
-        updateUser(updatedUser)
-        
-        toast({
-          title: "Success",
-          description: "Player profile updated successfully!",
-          variant: "success",
-        })
-        
-        navigate('/dashboard/player')
-      } else {
-        const errorData = await response.json()
-        toast({
-          title: "Error",
-          description: errorData.message || "Failed to update profile",
-          variant: "destructive",
-        })
+      // Get player ID from user context
+      const playerId = user?.id
+      if (!playerId) {
+        throw new Error('Player ID not found. Please log in again.')
       }
+
+      // Format and validate the data
+      const formattedData = {
+        ...formData,
+        // Ensure numerical fields are numbers
+        age: formData.age ? parseInt(formData.age, 10) : null,
+        height: formData.height ? parseFloat(formData.height) : null,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
+        // Remove any undefined or empty string values
+        ...Object.fromEntries(
+          Object.entries(formData).filter(([_, value]) => 
+            value !== undefined && value !== ''
+          )
+        )
+      }
+
+      // Log the formatted data
+      console.log('Formatted data being sent:', formattedData)
+
+      const result = await updateProfileData('player', localStorage.getItem('token'), playerId, formattedData)
+
+      let updatedUser = null
+      
+      // If result contains user data, use it
+      if (result && typeof result === 'object' && result.success !== false) {
+        updatedUser = { ...user, ...formData, ...result }
+      } else {
+        // Otherwise, just merge form data with existing user
+        updatedUser = { ...user, ...formData }
+      }
+        
+      // Update user context
+      if (updatedUser) {
+        updateUser(updatedUser)
+      }
+      
+      toast({
+        title: "Success",
+        description: "Player profile updated successfully!",
+        variant: "success",
+      })
+      
+      navigate('/dashboard/player')
     } catch (error) {
       console.error('Profile update error:', error)
       toast({
         title: "Error",
-        description: "Network error. Please check if the server is running and try again.",
+        description: error.message.includes('Player ID not found') ? error.message : "Network error. Please check your network connection and try again.",
         variant: "destructive",
       })
     } finally {
@@ -111,37 +130,46 @@ export default function EditPlayerProfile() {
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="fullName">Full Name *</Label>
                   <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    value={formData.fullName}
                     onChange={handleChange}
                     required
+                    minLength={2}
+                    maxLength={100}
                   />
                 </div>
 
-
-                 <div>
-                  <Label htmlFor="userName">User Name</Label>
+                <div>
+                  <Label htmlFor="userName">Username *</Label>
                   <Input
-                    type="username"
-                    id="username"
-                    name="username"
+                    type="text"
+                    id="userName"
+                    name="userName"
                     value={formData.userName}
                     onChange={handleChange}
+                    required
+                    minLength={3}
+                    maxLength={50}
+                    pattern="[a-zA-Z0-9_-]+"
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="height">Height (cm)</Label>
                   <Input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
+                    type="number"
+                    id="height"
+                    name="height"
+                    value={formData.height}
                     onChange={handleChange}
-                    required
+                    min="120"
+                    max="250"
+                    step="0.1"
+                    placeholder="180"
                   />
                 </div>
                 
@@ -153,80 +181,82 @@ export default function EditPlayerProfile() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    pattern="[0-9+\-\s()]+"
+                  />
+                </div>
+
+                 <div>
+                  <Label htmlFor="age">Age *</Label>
+                  <Input
+                    type="text"
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">Location *</Label>
                   <Input
+                    type="text"
                     id="location"
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
                   <Input
                     type="date"
                     id="dateOfBirth"
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleChange}
+                    required
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="position">Position</Label>
-                  <select
+                  <Label htmlFor="position">Position *</Label>
+                  <Input
+                    type="text"
                     id="position"
                     name="position"
                     value={formData.position}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  >
-                    <option value="">Select Position</option>
-                    <option value="goalkeeper">Goalkeeper</option>
-                    <option value="defender">Defender</option>
-                    <option value="midfielder">Midfielder</option>
-                    <option value="forward">Forward</option>
-                    <option value="striker">Striker</option>
-                  </select>
-                </div>
-        
-                <div>
-                  <Label htmlFor="height">Height (cm)</Label>
-                  <Input
-                    type="number"
-                    id="height"
-                    name="height"
-                    value={formData.height}
-                    onChange={handleChange}
-                    placeholder="180"
+                    required
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="age">Age (Years)</Label>
+                  <Label htmlFor="weight">Weight (kg)</Label>
                   <Input
                     type="number"
-                    id="age"
-                    name="age"
-                    value={formData.age}
+                    id="weight"
+                    name="weight"
+                    value={formData.weight}
                     onChange={handleChange}
+                    min="30"
+                    max="150"
+                    step="0.1"
                     placeholder="75"
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="clubTeam">Club Team</Label>
+                  <Label htmlFor="clubTeam">Current Club/Team</Label>
                   <Input
+                    type="text"
                     id="clubTeam"
                     name="clubTeam"
                     value={formData.clubTeam}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
               </div>
@@ -241,16 +271,6 @@ export default function EditPlayerProfile() {
                   value={formData.bio}
                   onChange={handleChange}
                   placeholder="Tell us about yourself as a player..."
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="weight">Weight</Label>
-                <Textarea
-                  id="weight"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
                 />
               </div>
               

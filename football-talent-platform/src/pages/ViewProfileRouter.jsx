@@ -3,7 +3,7 @@ import ViewPlayerProfile from "../components/profiles/ViewPlayerProfile"
 import ViewCoachProfile from "../components/profiles/ViewCoachProfile"
 import ViewScoutProfile from "../components/profiles/ViewScoutProfile"
 
-function Profile() {
+export default function ViewProfileRouter() {
   const { role } = useParams()
 
   switch (role) {
@@ -14,15 +14,6 @@ function Profile() {
     case 'scout':
       return <ViewScoutProfile />
     default:
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Role</h1>
-            <p className="text-gray-600">The requested profile role does not exist.</p>
-          </div>
-        </div>
-      )
+      return <div>Invalid role</div>
   }
 }
-
-export default Profile

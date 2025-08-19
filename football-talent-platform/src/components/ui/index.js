@@ -5,6 +5,7 @@ export { Label } from './label'
 export { Textarea } from './textarea'
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SimpleSelect } from './select'
 export { Avatar, AvatarImage, AvatarFallback } from './avatar'
+export { Badge } from './badge'
 export {
   DropdownMenu,
   DropdownMenuTrigger,
