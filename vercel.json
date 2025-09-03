@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "https://crown-star.onrender.com/api"
+      "destination": "https://crown-star.onrender.com"
     }
   ]
 }
